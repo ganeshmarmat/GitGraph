@@ -42,36 +42,40 @@ namespace WpfApp1
             //n.Stroke = new SolidColorBrush() { Color = Colors.Red };
             //Canvaswin.Children.Add(n);
 
-            new Operations().GenerateLogFile(CommonData.GitRepoPath, CommonData.GitLogFilePath);
-            List<Node> nodeobj = new Operations().LoadNodeCollectionFromFile(CommonData.GitLogFilePath);
+            //new Operations().GenerateLogFile(CommonData.GitRepoPath, CommonData.GitLogFilePath);
+            List<Node> nodeobj = new Operations().LoadNodeCollectionFromFile(@"E:\mysdtuff\GitGraph\GitGraph\\log.txt");//(CommonData.GitLogFilePath);
             new Operations().ProcessParentList(nodeobj);
+            nodeobj.Reverse();
             foreach (var item in nodeobj)
             {
                 NodeUI uiobj = new NodeUI();
                 uiobj.Height = item.UI.Height;
                 uiobj.Width = item.UI.Width;
                 uiobj.DataContext = item;
-                Canvas.SetTop(uiobj, item.UI.StartPoint.X);
-                Canvas.SetLeft(uiobj, item.UI.StartPoint.Y);
+                Canvas.SetTop(uiobj, item.UI.StartPoint.Y);
+                Canvas.SetLeft(uiobj, item.UI.StartPoint.X);
+                
                 Canvaswin.Children.Add(uiobj);
                 foreach (var link in item.UI.Links)
                 {
-                    link.Stroke = new SolidColorBrush() { Color = Colors.Red };
+                    link.Stroke = new SolidColorBrush() { Color = Colors.Blue };
+                    link.StrokeThickness = 2;
+                    link.SetValue(Canvas.ZIndexProperty, 2);
                     Canvaswin.Children.Add(link);
                 }
                 
-               if(maxheight< item.UI.StartPoint.X+100)
+               if(maxheight< item.UI.StartPoint.Y+100)
                 {
-                    maxheight = item.UI.StartPoint.X + 100;
+                    maxheight = item.UI.StartPoint.Y + 100;
                 }
-                if (maxwidth < item.UI.StartPoint.Y + 100)
+                if (maxwidth < item.UI.StartPoint.X + 100)
                 {
-                    maxwidth = item.UI.StartPoint.Y + 100;
+                    maxwidth = item.UI.StartPoint.X + 100;
                 }
             }
             Canvaswin.Height = maxheight;
-            Scrollbarviewer.Height = maxheight;
-            Canvaswin.Width = maxwidth;
+            //Scrollbarviewer.Height = maxheight;
+            Canvaswin.Width = 10000;
         }
     }
 }

@@ -5,8 +5,74 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:WpfApp1"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" x:Name="usercontrolnode" d:DesignWidth="800">
+    <UserControl.Resources>
+        <local:ListofStringtoStringConverter x:Key="lsttostringconverter"></local:ListofStringtoStringConverter>
+        <DataTemplate x:Key="datatemplatenode" DataType="{x:Type local:Node}">
+            <ScrollViewer Height="{Binding UI.Height}" Width="{Binding UI.Width}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" >
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="{Binding Subject}"></TextBlock>
+                    <TextBlock Text="{Binding AuthorName}"></TextBlock>
+                </StackPanel>
+            </ScrollViewer>
+        </DataTemplate>
+    </UserControl.Resources>
     <Grid>
-        <TextBlock Text="{Binding AbbrevId}"></TextBlock>
+        <Border BorderBrush="Black" BorderThickness="2" CornerRadius="5" Height="Auto" Width="Auto">
+
+            <TextBlock x:Name="txtid" VerticalAlignment="Center" HorizontalAlignment="Center"  Text="{Binding AbbrevId}">
+                <!--<TextBlock.Style>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="ToolTip.StaysOpen" Value="True"></Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="False">
+                                <Setter Property="ToolTip.StaysOpen" Value="False"></Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+                <TextBlock.ToolTip>
+                    <ToolTip>
+                        <ToolTip.ContentTemplate>
+                            <DataTemplate>
+                                <ScrollViewer Height="{Binding UI.Height}" Width="{Binding UI.Width}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" DataContext="{Binding Path=DataContext,RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+                                    <StackPanel Orientation="Vertical">
+                                        <TextBlock Text="yes"></TextBlock>
+                                        <TextBlock Text="{Binding Subject}"></TextBlock>
+                                        <TextBlock Text="{Binding AuthorName}"></TextBlock>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </DataTemplate>
+                        </ToolTip.ContentTemplate>
+                    </ToolTip>
+                </TextBlock.ToolTip>-->
+            </TextBlock>
+
+
+        </Border>
+        <Popup x:Name="popup1" MaxWidth="300" Placement="MousePoint" AllowsTransparency="True" PopupAnimation="Fade"   Panel.ZIndex="10">
+            <Border Background="AliceBlue" BorderBrush="Gray" BorderThickness="2"  DataContext="{Binding Path=DataContext,RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+                <ScrollViewer Height="{Binding UI.Height}" Width="{Binding UI.Width}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding Subject,StringFormat='Subject: {0}'}"></TextBlock>
+                        <TextBlock Text="{Binding AuthorName,StringFormat='Author: {0}'}"></TextBlock>
+                        <TextBlock Text="{Binding AbbrevParent,Converter={StaticResource lsttostringconverter},StringFormat='Parent: {0}'}"></TextBlock>
+                        <TextBlock Text="{Binding AbbrevChild,Converter={StaticResource lsttostringconverter},StringFormat='Child: {0}'}"></TextBlock>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+            <Popup.Style>
+                <Style TargetType="{x:Type Popup}">
+                    <Setter Property="IsOpen" Value="{Binding ElementName=txtid,Path=IsMouseOver,Mode=OneWay}"></Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="IsOpen" Value="True"></Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Popup.Style>
+        </Popup>
     </Grid>
 </UserControl>

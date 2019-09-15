@@ -11,9 +11,14 @@ namespace WpfApp1
     public class Operations
     {
         const char seprator = '$';
-        public double Height = 100;
+        public double Height = 50;
         public double Width = 100;
+        int spacebetweenrows = 50;
+        int spacebetweenColumns = 100;
+        List<int> arrholdcol;
+        string logtext = "";
         public List<string> tempList = new List<string>();
+        private Queue<Node> Nodequeue = new Queue<Node>();
         public bool GenerateLogFile(string gitDir, string logFilePath)
         {
             RunCmd(gitDir, "/c git log --pretty=format:\" %H " + seprator + " %h " + seprator + " %P " + seprator + " %p " + seprator + " %an " + seprator + " %ae " + seprator + " %cn " + seprator + " %ce " + seprator + " %cd " + seprator + " %s \" > " + logFilePath);
@@ -70,44 +75,140 @@ namespace WpfApp1
             var roots = nodes.Where(x => x.AbbrevParent.Count == 0);
             Node root = roots.Last();
 
-            root.UI.Row = 0;
-            root.UI.Column = 0;
+            root.UI.Row = 1;
+            root.UI.Column = 1;
             root.UI.StartPoint = new System.Windows.Point(0, 0);
             root.UI.Height = Height;
             root.UI.Width = Width;
 
-            ParentFillData(nodes, root, null);
+            CreateListwithChilds(nodes);
+            arrholdcol = new List<int>();
+            arrholdcol.Add(0);
+            arrholdcol.Add(0);
+            //Nodequeue.Enqueue(root);
 
+            BFSSearchFillRowColumn(root);
+            FillWithUILocation(nodes);
+            //ParentFillData(nodes, root, null);
+            File.WriteAllText(@"E:\mysdtuff\GitGraph\skip.log", logtext.ToString());
+
+        }
+        public void CreateListwithChilds(List<Node> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                var childs = nodes.Where(x => x.AbbrevParent.Contains(node.AbbrevId)).ToList();
+                node.AbbrevChild = childs.Select(x => x.AbbrevId).ToList();
+                node.Child = childs.Select(x => x.Id).ToList();
+                node.ChildsObj = childs;
+                foreach (var findchild in node.Parent)
+                {
+                    var parents = nodes.Where(x => x.Id == findchild).ToList();
+                    if (parents != null)
+                        node.ParentObj.AddRange(parents);
+                }
+            }
+
+            //if (root.AbbrevChild != null)
+            //    return; ;
+            //var childs = nodes.Where(x => x.AbbrevParent.Contains(root.AbbrevId)).ToList();
+            //root.AbbrevChild = childs.Select(x=>x.AbbrevId).ToList();
+            //foreach (var child in childs)
+            //{
+            //    Nodequeue.Enqueue(child);
+            //}
+            //while (Nodequeue.Count != 0)
+            //{
+            //    Nodequeue.Dequeue();
+            //}
+        }
+        private void BFSSearchFillRowColumn(Node currentnode)
+        {
+            if (tempList.Contains(currentnode.AbbrevId))
+            {
+                return;
+            }
+            tempList.Add(currentnode.AbbrevId);
+            if (arrholdcol.Count-1 <= currentnode.UI.Row)
+                arrholdcol.Add(0);
+            foreach (var item in currentnode.ChildsObj)
+            {
+                item.UI.Row = currentnode.UI.Row + 1;
+                arrholdcol[item.UI.Row] += 1;
+                item.UI.Column = arrholdcol[item.UI.Row];
+                Nodequeue.Enqueue(item);
+            }
+            while (Nodequeue.Count != 0)
+            {
+                BFSSearchFillRowColumn(Nodequeue.Dequeue());
+            }
+        }
+        private void safeSearchforDuplicateRowCol()
+        {
+
+        }
+        private void FillWithUILocation(List<Node> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                node.UI.Height = Height;
+                node.UI.Width = Width;
+                node.UI.StartPoint=new Point(node.UI.Column * (Width + spacebetweenColumns), node.UI.Row * (Height + spacebetweenrows));
+                foreach (var parent in node.ParentObj)
+                {
+                    node.UI.Links.Add(new System.Windows.Shapes.Line() {
+                        X1 = node.UI.StartPoint.X + (Width / 2),
+                        Y1= node.UI.StartPoint.Y,
+                        X2= (parent.UI.Column * (Width + spacebetweenColumns)) + (Width/2),
+                        Y2 =(parent.UI.Row * (Height + spacebetweenrows))+Height
+                    });
+                }
+            }
         }
         private void ParentFillData(List<Node> nodes, Node parent, Point? lastnodePoint)
         {
             if (tempList.Contains(parent.AbbrevId))
+            {
+                //logtext.Append(parent.AbbrevId + "\n");
+                //File.WriteAllText(@"E:\mysdtuff\GitGraph\skip.log", parent.AbbrevId + "\n");
                 return;
+            }
             tempList.Add(parent.AbbrevId);
-            int _col = 0;
-            int mid = 50;
-            parent.UI.StartPoint = new System.Windows.Point(parent.UI.Row * 50, parent.UI.Column * 50);
+            int _col = 1;
+            int mid = (int)Width / 2;
+            parent.UI.StartPoint = new System.Windows.Point((parent.UI.Column * Width) + spacebetweenColumns, ((Point)(lastnodePoint ?? new Point(0, 0))).Y + Height + spacebetweenrows);
             parent.UI.Height = Height;
             parent.UI.Width = Width;
             if (lastnodePoint != null)
             {
                 Point lstpoint = (Point)lastnodePoint;
-                parent.UI.Links.Add(new System.Windows.Shapes.Line() { X1 = lstpoint.X + mid, Y1 = lstpoint.Y + mid*2 });
+                parent.UI.Links.Add(new System.Windows.Shapes.Line() { X1 = lstpoint.X + mid, Y1 = lstpoint.Y + Height });
                 foreach (var link in parent.UI.Links)
                 {
-                    link.X2 = parent.UI.StartPoint.X + mid*2;
-                    link.Y2 = parent.UI.StartPoint.Y +mid;
+                    link.X2 = parent.UI.StartPoint.X + mid;
+                    link.Y2 = parent.UI.StartPoint.Y;
                 }
             }
             var childs = nodes.Where(x => x.AbbrevParent.Contains(parent.AbbrevId)).ToList();
-           
+
             foreach (var child in childs)
             {
                 child.UI.Row = parent.UI.Row + 1;
                 child.UI.Column = _col;
-                ParentFillData(nodes, child,parent.UI.StartPoint);
+                if (!Nodequeue.Contains(child))
+                    Nodequeue.Enqueue(child);
+                //ParentFillData(nodes, child, parent.UI.StartPoint);
                 _col++;
 
+            }
+            while (Nodequeue.Count != 0)
+            {
+
+                ParentFillData(nodes, Nodequeue.Dequeue(), parent.UI.StartPoint);
+                //if (tempList.Contains(parent.AbbrevId))
+                //{
+                //    logtext=logtext+parent.AbbrevId + "\n";
+                //}
             }
         }
     }

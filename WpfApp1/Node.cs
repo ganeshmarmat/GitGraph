@@ -23,6 +23,8 @@ namespace WpfApp1
         public string AuthorEmail { get; set; }
         public string CommitterName { get; set; }
         public string CommiterEmail { get; set; }
+        public List<Node> ChildsObj { get; set; } = new List<Node>();
+        public List<Node> ParentObj { get; set; } = new List<Node>();
     }
     
     public class Ui
